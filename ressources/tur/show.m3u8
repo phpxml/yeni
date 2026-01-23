@@ -1,0 +1,9 @@
+#EXTM3U
+#EXTINF:-1 tvg-id="Show TV" tvg-logo="[https://mo.ciner.com.tr/showtv/assets/images/logo-show-tv.png](https://mo.ciner.com.tr/showtv/assets/images/logo-show-tv.png)",Show TV
+[https://ciner-live.ercdn.net/showtv/showtv_720p.m3u8](https://ciner-live.ercdn.net/showtv/showtv_720p.m3u8)
+#EXTINF:-1 tvg-id="Show Turk" tvg-logo="[https://mo.ciner.com.tr/showtv/assets/images/logo-show-turk.png](https://mo.ciner.com.tr/showtv/assets/images/logo-show-turk.png)",Show Turk
+[https://ciner-live.ercdn.net/showturk/showturk_720p.m3u8](https://ciner-live.ercdn.net/showturk/showturk_720p.m3u8)
+#EXTINF:-1 tvg-id="Show Max" tvg-logo="[https://mo.ciner.com.tr/showmax/assets/images/logo-show-max.png](https://mo.ciner.com.tr/showmax/assets/images/logo-show-max.png)",Show Max
+[https://ciner-live.ercdn.net/showmax/showmax_720p.m3u8](https://ciner-live.ercdn.net/showmax/showmax_720p.m3u8)
+#EXTINF:-1 tvg-id="Haberturk" tvg-logo="[https://mo.ciner.com.tr/haberturk/assets/images/logo-haberturk-tv.png](https://mo.ciner.com.tr/haberturk/assets/images/logo-haberturk-tv.png)",Haberturk
+[https://ciner-live.ercdn.net/haberturktv/haberturktv_720p.m3u8](https://ciner-live.ercdn.net/haberturktv/haberturktv_720p.m3u8)
