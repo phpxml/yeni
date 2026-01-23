@@ -1,33 +1,59 @@
 import requests
 import re
+import json
 import urllib3
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+base_url = "https://ciner-live.ercdn.net/showturk/"
 
-def get_stream():
-    target_url = "[https://www.showturk.com.tr/canli-yayin](https://www.showturk.com.tr/canli-yayin)"
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
-        'Referer': '[https://www.showturk.com.tr/](https://www.showturk.com.tr/)'
-    }
+urllib3.disable_warnings()
 
-    try:
-        response = requests.get(target_url, verify=False, timeout=20, headers=headers)
-        match = re.search(r'https?://[^\s"\']+/showturk/[^\s"\']+\.m3u8', response.text)
+response = requests.get(
+    "https://www.showturk.com.tr/canli-yayin",
+    verify=False,
+    timeout=15
+)
 
-        print("#EXTM3U")
-        if match:
-            m3u8_url = match.group(0)
-            print('#EXTINF:-1 tvg-id="ShowTurk" tvg-logo="[https://mo.ciner.com.tr/showtv/assets/images/logo-show-turk.png](https://mo.ciner.com.tr/showtv/assets/images/logo-show-turk.png)",Show Turk')
-            print(m3u8_url)
-        else:
-            print('#EXTINF:-1,Show Turk')
-            print("[https://ciner-live.ercdn.net/showturk/showturk_720p.m3u8](https://ciner-live.ercdn.net/showturk/showturk_720p.m3u8)")
+if response.status_code == 200:
+    site_content = response.text
 
-    except:
-        print("#EXTM3U")
-        print('#EXTINF:-1,Show Turk')
-        print("[https://ciner-live.ercdn.net/showturk/showturk_720p.m3u8](https://ciner-live.ercdn.net/showturk/showturk_720p.m3u8)")
+    match = re.search(r"data-hope-video='(.*?)'", site_content, re.DOTALL)
 
-if __name__ == "__main__":
-    get_stream()
+    if match:
+        json_data_raw = match.group(1)
+        json_data_valid = json_data_raw.replace("\\/", "/")
+
+        try:
+            ht_data = json.loads(json_data_valid)
+
+            m3u8_list = ht_data.get('media', {}).get('m3u8', [])
+            ht_stream_m3u8 = m3u8_list[0].get('src') if m3u8_list else None
+
+            if ht_stream_m3u8:
+                content_response = requests.get(ht_stream_m3u8)
+
+                if content_response.status_code == 200:
+                    content = content_response.text
+                    lines = content.split("\n")
+                    modified_content = ""
+
+                    for line in lines:
+                        if line.startswith("showturk"):
+                            full_url = base_url + line
+                            modified_content += full_url + "\n"
+                        else:
+                            modified_content += line + "\n"
+
+                    print(modified_content)
+                else:
+                    print("Error fetching content from the Live URL.")
+            else:
+                print("Live URL not found in the JSON data.")
+
+        except json.JSONDecodeError as e:
+            print(f"JSON decoding error: {e}")
+
+    else:
+        print("data-hope-video JSON not found in the content.")
+
+else:
+    print("Error: Status code is not 200.")
