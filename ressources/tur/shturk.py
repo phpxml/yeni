@@ -1,55 +1,33 @@
-
 import requests
 import re
-import json
 import urllib3
-import sys
 
-# SSL uyarılarını kapat
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def get_stream():
-    base_url = "[https://ciner-live.ercdn.net/showturk/](https://ciner-live.ercdn.net/showturk/)"
     target_url = "[https://www.showturk.com.tr/canli-yayin](https://www.showturk.com.tr/canli-yayin)"
-    
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+        'Referer': '[https://www.showturk.com.tr/](https://www.showturk.com.tr/)'
     }
 
     try:
-        response = requests.get(target_url, verify=False, timeout=15, headers=headers)
-        if response.status_code != 200:
-            return
+        response = requests.get(target_url, verify=False, timeout=20, headers=headers)
+        match = re.search(r'https?://[^\s"\']+/showturk/[^\s"\']+\.m3u8', response.text)
 
-        site_content = response.text
-        match = re.search(r"data-hope-video='(.*?)'", site_content, re.DOTALL)
-
+        print("#EXTM3U")
         if match:
-            json_data_raw = match.group(1)
-            json_data_valid = json_data_raw.replace("\\/", "/")
-            ht_data = json.loads(json_data_valid)
+            m3u8_url = match.group(0)
+            print('#EXTINF:-1 tvg-id="ShowTurk" tvg-logo="[https://mo.ciner.com.tr/showtv/assets/images/logo-show-turk.png](https://mo.ciner.com.tr/showtv/assets/images/logo-show-turk.png)",Show Turk')
+            print(m3u8_url)
+        else:
+            print('#EXTINF:-1,Show Turk')
+            print("[https://ciner-live.ercdn.net/showturk/showturk_720p.m3u8](https://ciner-live.ercdn.net/showturk/showturk_720p.m3u8)")
 
-            m3u8_list = ht_data.get('media', {}).get('m3u8', [])
-            ht_stream_m3u8 = m3u8_list[0].get('src') if m3u8_list else None
-
-            if ht_stream_m3u8:
-                content_response = requests.get(ht_stream_m3u8, timeout=10)
-                if content_response.status_code == 200:
-                    lines = content_response.text.split("\n")
-                    modified_content = []
-
-                    for line in lines:
-                        if line.startswith("showturk"):
-                            modified_content.append(base_url + line)
-                        else:
-                            modified_content.append(line)
-
-                    # Çıktıyı ekrana bas (Workflow bunu m3u8 dosyasına yazar)
-                    print("\n".join(modified_content))
-                
-    except Exception as e:
-        # Hata durumunda boş çıktı vererek workflow'un bozulmasını engeller
-        sys.exit(0)
+    except:
+        print("#EXTM3U")
+        print('#EXTINF:-1,Show Turk')
+        print("[https://ciner-live.ercdn.net/showturk/showturk_720p.m3u8](https://ciner-live.ercdn.net/showturk/showturk_720p.m3u8)")
 
 if __name__ == "__main__":
     get_stream()
