@@ -2,8 +2,8 @@ name: ShowTV_Update
 
 on:
   schedule:
-    - cron: '0 * * * *'
-  workflow_dispatch:
+    - cron: '0 * * * *' # Her saat başı çalışır
+  workflow_dispatch: # Manuel çalıştırma butonu ekler
 
 jobs:
   update_link:
@@ -22,7 +22,7 @@ jobs:
           pip install selenium-wire webdriver-manager selenium
 
       - name: Run Script
-        run: python get_stream.py
+        run: python show.py
 
       - name: Save Changes
         run: |
