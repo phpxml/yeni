@@ -21,7 +21,7 @@ jobs:
           pip install requests
 
       - name: Execute Python script
-        # Dosya yolunu ressources/tur/ olarak belirledik
+        # Ciktinin ressources/tur/ klasorune yazilmasi
         run: python3 ressources/tur/shmax.py > ressources/tur/shmax.m3u8
 
       - name: config
@@ -32,5 +32,5 @@ jobs:
       - name: commit & push
         run: |
           git add ressources/tur/shmax.m3u8
-          git commit -m "Show Max updated" || echo "No changes"
+          git commit -m "Show Max Otomatik Guncelleme" || echo "Degisiklik yok"
           git push origin main
