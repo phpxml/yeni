@@ -11,25 +11,29 @@ def get_live_stream():
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-gpu")
+    options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
     
-    driver = webdriver.Chrome(
-        service=Service(ChromeDriverManager().install()),
-        options=options
-    )
-
     try:
+        driver = webdriver.Chrome(
+            service=Service(ChromeDriverManager().install()),
+            options=options
+        )
+        
         driver.get("https://www.showtv.com.tr/canli-yayin")
-        time.sleep(20) 
+        time.sleep(30) 
 
+        found_url = None
         for request in driver.requests:
             if request.response:
                 if ".m3u8" in request.url and "ciner" in request.url:
-                    return request.url
+                    found_url = request.url
+                    break
+        
+        driver.quit()
+        return found_url
     except Exception as e:
         print(f"Error: {e}")
-    finally:
-        driver.quit()
-    return None
+        return None
 
 if __name__ == "__main__":
     stream_url = get_live_stream()
