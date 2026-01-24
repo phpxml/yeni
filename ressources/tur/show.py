@@ -1,31 +1,54 @@
 import requests
 import re
+import json
 import urllib3
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+base_url = "[https://ciner.daioncdn.net/showtv/](https://ciner.daioncdn.net/showtv/)"
 
-def get_live_link():
-    url = "[https://www.showtv.com.tr/canli-yayin](https://www.showtv.com.tr/canli-yayin)"
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
-        'Referer': '[https://www.showtv.com.tr/](https://www.showtv.com.tr/)'
-    }
-    try:
-        response = requests.get(url, verify=False, timeout=15, headers=headers)
-        if response.status_code == 200:
-            # Sayfa içindeki dinamik m3u8 linkini yakalar
-            match = re.search(r'https?://[^\s"\']+\.m3u8[^\s"\']*', response.text)
-            if match:
-                return match.group(0)
-    except:
-        pass
-    return "[https://ciner-live.ercdn.net/showtv/showtv_720p.m3u8](https://ciner-live.ercdn.net/showtv/showtv_720p.m3u8)"
+urllib3.disable_warnings()
 
 def main():
-    link = get_live_link()
-    print("#EXTM3U")
-    print('#EXTINF:-1 tvg-id="Show TV" tvg-logo="[https://mo.ciner.com.tr/showtv/assets/images/logo-show-tv.png](https://mo.ciner.com.tr/showtv/assets/images/logo-show-tv.png)",Show TV')
-    print(link)
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': '[https://www.showtv.com.tr/](https://www.showtv.com.tr/)'
+    }
+
+    try:
+        response = requests.get(
+            "[https://www.showtv.com.tr/canli-yayin](https://www.showtv.com.tr/canli-yayin)",
+            headers=headers,
+            verify=False,
+            timeout=15
+        )
+
+        if response.status_code == 200:
+            match = re.search(r'data-hope-video=["\'](.*?)["\']', response.text, re.DOTALL)
+
+            if match:
+                json_data_raw = match.group(1)
+                json_data_valid = json_data_raw.replace("\\/", "/")
+                ht_data = json.loads(json_data_valid)
+                
+                m3u8_list = ht_data.get('media', {}).get('m3u8', [])
+                ht_stream_m3u8 = m3u8_list[0].get('src') if m3u8_list else None
+
+                if ht_stream_m3u8:
+                    content_response = requests.get(ht_stream_m3u8, headers=headers, timeout=10)
+
+                    if content_response.status_code == 200:
+                        lines = content_response.text.split("\n")
+                        output = []
+
+                        for line in lines:
+                            line = line.strip()
+                            if line.startswith("showtv"):
+                                output.append(base_url + line)
+                            elif line:
+                                output.append(line)
+
+                        print("\n".join(output))
+    except:
+        pass
 
 if __name__ == "__main__":
     main()
