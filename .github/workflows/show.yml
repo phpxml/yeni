@@ -1,17 +1,21 @@
-
-name: Ciner Group Update
+name: show
 
 on:
   schedule:
-    - cron: '27 */2 * * *'
+    - cron: '27 */02 * * *'
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+
+      - name: config
+        run: |
+          git config --global user.email "<>"
+          git config --global user.name "show bot"
 
       - name: Set up Python
         uses: actions/setup-python@v2
@@ -19,14 +23,23 @@ jobs:
           python-version: '3.x'
 
       - name: Install dependencies
-        run: pip install requests urllib3
-
-      - name: Run script
-        run: python ressources/tur/show.py > ressources/tur/show.m3u8
-
-      - name: Commit and push if changed
         run: |
-          git config --global user.email "action@github.com"
-          git config --global user.name "GitHub Action"
-          git add ressources/tur/show.m3u8
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Update Ciner Group Channels" && git push)
+          python -m pip install --upgrade pip
+          pip install requests certifi
+
+      - name: Install requests module
+        run: python3 -m pip install requests
+
+      - name: Execute Python script
+        run: python3 ressources/tur/show.py > ressources/tur/show.m3u8
+
+      - name: git add
+        run: |
+          git add -A
+          ls -la 
+          
+      - name: commit & push
+        run: |
+          git pull origin main
+          git commit -m "show updated"
+          git push origin main
