@@ -1,1 +1,33 @@
+name: ShowTV_Update
 
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  update_link:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Tools
+        run: |
+          pip install selenium-wire webdriver-manager selenium
+
+      - name: Run Script
+        run: python get_stream.py
+
+      - name: Save Changes
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add showtv.m3u8
+          git commit -m "Automated link update" || exit 0
+          git push
