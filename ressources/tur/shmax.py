@@ -7,19 +7,23 @@ def get_live_link():
     
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Referer": "https://www.showmax.com.tr/"
+        "Referer": "https://www.showmax.com.tr/",
+        "Origin": "https://www.showmax.com.tr"
     }
 
     try:
-        response = requests.get(api_url, headers=headers, timeout=15)
+        response = requests.get(api_url, headers=headers, timeout=20)
+        # Hata kodunu kontrol et
         if response.status_code == 200:
             data = response.json()
-            # JSON verisinden hls (m3u8) linkini çekiyoruz
             m3u8_link = data.get('data', {}).get('media', {}).get('link', {}).get('hls')
             return m3u8_link
-    except:
+        else:
+            sys.stderr.write(f"API Hatasi: Kod {response.status_code}\n")
+            return None
+    except Exception as e:
+        sys.stderr.write(f"Baglanti Hatasi: {str(e)}\n")
         return None
-    return None
 
 if __name__ == "__main__":
     link = get_live_link()
@@ -28,5 +32,4 @@ if __name__ == "__main__":
         print("#EXTINF:-1,Show Max")
         print(link)
     else:
-        # Link alınamazsa hata verdiriyoruz ki GitHub Actions bizi uyarsın
         sys.exit(1)
