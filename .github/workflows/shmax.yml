@@ -40,6 +40,6 @@ jobs:
 
       - name: commit & push
         run: |
-          git pull origin master
+          git pull origin main
           git commit -m "shmax updated" || echo "No changes to commit"
-          git push origin master
+          git push origin main
