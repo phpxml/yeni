@@ -21,21 +21,20 @@ def get_token_link():
             raw_link = match.group(1).replace("\\/", "/")
             return raw_link
     except Exception as e:
-        print(f"Hata oluştu: {e}")
+        print(f"Hata olustu: {e}")
     return None
 
 def create_m3u(link):
     if link:
-        # M3U dosyasını ana dizine (root) çıkartıyoruz ki TiviMate kolay erişsin
+        # M3U dosyasını ana dizine (root) çıkartıyoruz
         with open("atv_avrupa.m3u", "w", encoding="utf-8") as f:
             f.write("#EXTM3U\n")
             f.write("#EXTINF:-1,atv Avrupa (Auto-Update)\n")
             f.write(f"{link}\n")
-        print("M3U dosyası başarıyla oluşturuldu.")
+        print("M3U dosyasi basariyla olusturuldu.")
     else:
-        print("Link bulunamadığı için dosya güncellenmedi.")
+        print("Link bulunamadigi icin dosya guncellenmedi.")
 
 if __name__ == "__main__":
     taze_link = get_token_link()
     create_m3u(taze_link)
-
