@@ -1,1 +1,33 @@
+name: Atv Avrupa Link Guncelleme
+
+on:
+  schedule:
+    - cron: '*/30 * * * *' # Her 30 dakikada bir otomatik çalışma
+  workflow_dispatch: # Manuel çalıştırma butonu (Test için)
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Python Kurulumu
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Gerekli Kutuphaneleri Yukle
+        run: pip install requests
+
+      - name: IDM Mantigiyla Linki Yakala
+        run: python ressources/tur/atvav.py
+
+      - name: Degisiklikleri Kaydet ve Yukle
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git add atv_avrupa.m3u
+          git commit -m "Atv linki otomatik tazelendi" || exit 0
+          git push
 
