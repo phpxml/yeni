@@ -1,7 +1,32 @@
-      - name: Değişiklikleri GitHub'a Kaydet
+name: IPTV Kontrol Sistemi
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  islem:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Kodlari indir
+        uses: actions/checkout@v3
+
+      - name: Python Kur
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Kutuphaneyi Yukle
+        run: pip install requests
+
+      - name: Taramayi Baslat
+        run: python main.py
+
+      - name: Kaydet
         run: |
-          git config --global user.name "GitHub Action"
+          git config --global user.name "github-actions"
           git config --global user.email "action@github.com"
-          git add calisan_maclar.txt
-          git commit -m "Yeni calisan MAC eklendi"
-          git push
+          git add calisan_maclar.txt || echo "Dosya yok"
+          git commit -m "Guncelleme" || echo "Degisiklik yok"
+          git push || echo "Push hatasi"
