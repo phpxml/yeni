@@ -1,1 +1,7 @@
-
+      - name: Değişiklikleri GitHub'a Kaydet
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add calisan_maclar.txt
+          git commit -m "Yeni calisan MAC eklendi"
+          git push
