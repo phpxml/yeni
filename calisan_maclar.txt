@@ -1,12 +1,10 @@
-http://dm.lion-ott.com/c/ | 00:1A:79:7C:6B:04 | Bitiş: Bilinmiyor
-http://dm.lion-ott.com/c/ | 00:1A:79:7C:6B:05 | Bitiş: Bilinmiyor
-http://dm.lion-ott.com/c/ | 00:1A:79:7C:6B:07 | Bitiş: Bilinmiyor
-http://dm.lion-ott.com/c/ | 00:1A:79:7C:6B:08 | Bitiş: Bilinmiyor
-http://dm.lion-ott.com/c/ | 00:1A:79:7C:6B:09 | Bitiş: Bilinmiyor
-http://dm.lion-ott.com/c/ | 00:1A:79:7C:6B:0A | Bitiş: Bilinmiyor
-http://dm.lion-ott.com/c/ | 00:1A:79:7C:6B:0B | Bitiş: Bilinmiyor
-http://dm.lion-ott.com/c/ | 00:1A:79:7C:6B:0D | Bitiş: Bilinmiyor
-http://dm.lion-ott.com/c/ | 00:1A:79:7C:6B:0E | Bitiş: Bilinmiyor
-http://dm.lion-ott.com/c/ | 00:1A:79:7C:6B:11 | Bitiş: Bilinmiyor
-http://dm.lion-ott.com/c/ | 00:1A:79:7C:6B:17 | Bitiş: Bilinmiyor
-http://dm.lion-ott.com/c/ | 00:1A:79:7C:6B:18 | Bitiş: Bilinmiyor
+http://dm.lion-ott.com/c/ | 00:1A:79:7C:6B:01 | DURUM: IZLENEBILIR | TOKEN ALINDI
+http://dm.lion-ott.com/c/ | 00:1A:79:7C:6B:02 | DURUM: IZLENEBILIR | TOKEN ALINDI
+http://dm.lion-ott.com/c/ | 00:1A:79:7C:6B:03 | DURUM: IZLENEBILIR | TOKEN ALINDI
+http://dm.lion-ott.com/c/ | 00:1A:79:7C:6B:05 | DURUM: IZLENEBILIR | TOKEN ALINDI
+http://dm.lion-ott.com/c/ | 00:1A:79:7C:6B:06 | DURUM: IZLENEBILIR | TOKEN ALINDI
+http://dm.lion-ott.com/c/ | 00:1A:79:7C:6B:08 | DURUM: IZLENEBILIR | TOKEN ALINDI
+http://dm.lion-ott.com/c/ | 00:1A:79:7C:6B:0A | DURUM: IZLENEBILIR | TOKEN ALINDI
+http://dm.lion-ott.com/c/ | 00:1A:79:7C:6B:0C | DURUM: IZLENEBILIR | TOKEN ALINDI
+http://dm.lion-ott.com/c/ | 00:1A:79:7C:6B:0E | DURUM: IZLENEBILIR | TOKEN ALINDI
+http://dm.lion-ott.com/c/ | 00:1A:79:7C:6B:10 | DURUM: IZLENEBILIR | TOKEN ALINDI
