@@ -1,1 +1,1 @@
-TARAMA YAPILDI: 4can.net üzerinde aktif MAC bulunamadı.
+HATA: Sunucu GitHub IP'sini engellemis olabilir veya bu blokta baska aktif yok.
