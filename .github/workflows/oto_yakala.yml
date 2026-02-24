@@ -2,20 +2,22 @@ name: Star TV Guncelle
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Her gece 00:00'da otomatik çalışır
-  workflow_dispatch: # Actions sekmesinde "Run workflow" butonu çıkarır
+    - cron: '0 0 * * *' # Her gece 00:00
+  workflow_dispatch: # Elle çalıştırma butonu
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions: # Code 128 hatasını önlemek için yazma izni
-      contents: write
+    permissions:
+      contents: write # Bu satır çok kritik, robotun yazma yetkisi
       
     steps:
-      - name: Depoyu kopyala
+      - name: Depoyu cek
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false # Kendi tokenimizi kullanacağımız için bunu false yapıyoruz
 
-      - name: Python ayarla
+      - name: Python kur
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
@@ -23,16 +25,14 @@ jobs:
       - name: Kutuphaneleri kur
         run: pip install requests
 
-      - name: Linki yakala ve kaydet
+      - name: Linki yakala
         run: python yakala.py
 
-      - name: Degisiklikleri depoya yukle
+      - name: Code 128'i Bitiren Push
         run: |
-          git config --global user.name "GitHub Action"
-          git config --global user.email "action@github.com"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add liste.m3u
-          git commit -m "Otomatik Star TV guncellemesi" || echo "Degisiklik yok"
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-          git commit -m "Otomatik Star TV guncellemesi" || echo "Degisiklik yok"
-          git push origin HEAD:main
-
+          git commit -m "Star TV linki tazelendi" || echo "Degisiklik yok"
+          # Alttaki satır kapıyı zorla açar:
+          git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" HEAD:main --force
