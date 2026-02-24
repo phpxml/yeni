@@ -1,38 +1,34 @@
-name: Star TV Guncelle
+name: Star TV Link Guncelle
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Her gece 00:00
-  workflow_dispatch: # Elle çalıştırma butonu
+    - cron: '0 * * * *' # Her saat başı çalışır
+  workflow_dispatch: # Manuel çalıştırma butonu ekler
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write # Bu satır çok kritik, robotun yazma yetkisi
-      
     steps:
-      - name: Depoyu cek
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false # Kendi tokenimizi kullanacağımız için bunu false yapıyoruz
+      - name: Kodu cek
+        uses: actions/checkout@v2
 
       - name: Python kur
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v2
         with:
           python-version: '3.9'
 
-      - name: Kutuphaneleri kur
-        run: pip install requests
+      - name: Tarayiciyi kur (Playwright)
+        run: |
+          pip install playwright
+          playwright install chromium
 
       - name: Linki yakala
         run: python yakala.py
 
-      - name: Code 128'i Bitiren Push
+      - name: Degisiklikleri kaydet
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name 'Github Bot'
+          git config --global user.email 'bot@github.com'
           git add liste.m3u
-          git commit -m "Star TV linki tazelendi" || echo "Degisiklik yok"
-          # Alttaki satır kapıyı zorla açar:
-          git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" HEAD:main --force
+          git commit -m "Link güncellendi" || exit 0
+          git push
