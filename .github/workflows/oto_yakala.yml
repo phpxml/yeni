@@ -1,34 +1,35 @@
-name: Günlük Link Güncelleyici
+name: Star TV Guncelle
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Her gece 00:00'da çalışır
-  workflow_dispatch: # İstediğin zaman manuel başlatman için buton ekler
+    - cron: '0 0 * * *' # Her gece 00:00'da otomatik çalışır
+  workflow_dispatch: # Actions sekmesinde "Run workflow" butonu çıkarır
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions: # Code 128 hatasını önlemek için yazma izni
+      contents: write
+      
     steps:
       - name: Depoyu kopyala
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Python kur
+      - name: Python ayarla
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.9'
 
-      - name: Gerekli araçları kur
-        run: |
-          pip install playwright playwright-stealth
-          playwright install chromium
+      - name: Kutuphaneleri kur
+        run: pip install requests
 
-      - name: Linki yakala
+      - name: Linki yakala ve kaydet
         run: python yakala.py
 
-      - name: Değişiklikleri kaydet
+      - name: Degisiklikleri depoya yukle
         run: |
-          git config --global user.name 'GitHub Action'
-          git config --global user.email 'action@github.com'
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
           git add liste.m3u
-          git commit -m "Link güncellendi: $(date)" || echo "Değişiklik yok"
+          git commit -m "Otomatik Star TV guncellemesi" || echo "Degisiklik yok"
           git push
