@@ -1,39 +1,37 @@
-import requests
-import re
+import os
+from playwright.sync_api import sync_playwright
 
-def star_yakala():
-    # Ahmet'in Star TV gizli mutfağı
-    url = "https://www.elahmad.com/tv/live/channels.php?id=83"
-    
-    # Ahmet'i kandırmak için gerçek bir tarayıcı gibi davranıyoruz
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Referer': 'https://www.elahmad.com/tv/canli-tv-live.php'
-    }
-    
-    try:
-        print("Star TV sayfasına gidiliyor...")
-        response = requests.get(url, headers=headers, timeout=15)
+def run():
+    with sync_playwright() as p:
+        # Tarayıcıyı açıyoruz
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
         
-        # Sayfa kodunun içinde imzayı arıyoruz
-        # Ahmet ne kadar tam ekran yapsa da bu kod metni okur
-        match = re.search(r'wmsAuthSign=([a-zA-Z0-9%=\-_&\.]+)', response.text)
+        # Ahmet'in sitesine gidiyoruz
+        url = "https://www.elahmad.com/tv/live/channels.php?id=83"
+        print(f"Siteye gidiliyor: {url}")
         
-        if match:
-            token = match.group(0) # 'wmsAuthSign=...' kısmını alır
-            # Tincat'ten aldığın sabit BozzTV link yapısı
-            star_link = f"https://tgn.bozztv.com/gin-trn09/gin-startv/index.m3u8?{token}"
-            
-            # IPTV listenin içine yazıyoruz
-            with open("liste.m3u", "w", encoding="utf-8") as f:
-                f.write("#EXTM3U\n")
-                f.write(f"#EXTINF:-1, Star TV\n{star_link}\n")
-            print("BAŞARILI: Star TV imzası tazelendi ve liste.m3u dosyasına yazıldı.")
+        # Linkleri yakalamak için ağ trafiğini dinliyoruz
+        link = None
+        def handle_request(request):
+            nonlocal link
+            if "m3u8" in request.url and "wmsAuthSign" in request.url:
+                link = request.url
+
+        page.on("request", handle_request)
+        page.goto(url)
+        
+        # Sayfanın ve JavaScript'in yüklenmesi için 10 saniye bekliyoruz
+        page.wait_for_timeout(10000)
+        
+        if link:
+            print(f"Başarılı! Link yakalandı: {link}")
+            with open("liste.m3u", "w") as f:
+                f.write(f"#EXTM3U\n#EXTINF:-1, Star TV\n{link}")
         else:
-            print("HATA: İmza sayfa kaynağında bulunamadı. Ahmet korumayı artırmış olabilir.")
+            print("Link yakalanamadı.")
             
-    except Exception as e:
-        print(f"BAĞLANTI HATASI: {e}")
+        browser.close()
 
 if __name__ == "__main__":
-    star_yakala()
+    run()
