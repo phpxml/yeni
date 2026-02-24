@@ -1,0 +1,34 @@
+name: Günlük Link Güncelleyici
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Her gece 00:00'da çalışır
+  workflow_dispatch: # İstediğin zaman manuel başlatman için buton ekler
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Depoyu kopyala
+        uses: actions/checkout@v3
+
+      - name: Python kur
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Gerekli araçları kur
+        run: |
+          pip install playwright playwright-stealth
+          playwright install chromium
+
+      - name: Linki yakala
+        run: python yakala.py
+
+      - name: Değişiklikleri kaydet
+        run: |
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'action@github.com'
+          git add liste.m3u
+          git commit -m "Link güncellendi: $(date)" || echo "Değişiklik yok"
+          git push
