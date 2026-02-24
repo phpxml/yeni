@@ -32,4 +32,7 @@ jobs:
           git config --global user.email "action@github.com"
           git add liste.m3u
           git commit -m "Otomatik Star TV guncellemesi" || echo "Degisiklik yok"
-          git push
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git commit -m "Otomatik Star TV guncellemesi" || echo "Degisiklik yok"
+          git push origin HEAD:main
+
